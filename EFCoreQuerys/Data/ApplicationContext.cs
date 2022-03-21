@@ -20,5 +20,10 @@ namespace EFCoreQuerys.Data
                 .LogTo(Console.WriteLine, LogLevel.Information)
                 .EnableSensitiveDataLogging();
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Employee>().HasQueryFilter(p => !p.IsDeleted);
+        }
     }
 }

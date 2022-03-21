@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using EFCoreQuerys.Data;
 using EFCoreQuerys.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace EFCoreQuerys
 {
@@ -13,6 +15,8 @@ namespace EFCoreQuerys
 
             ConsoleTextBox("Choose an option");
             Console.WriteLine("[2] Create Database");
+            Console.WriteLine("[3] Employees Global Filter List");
+            Console.WriteLine("[4] Employees Ignore Global Filter List");
             Console.WriteLine("[8] Delete Database");
             Console.WriteLine("[9] Exit");
             Console.WriteLine("- - - - - - - - - - - - -\n");
@@ -22,6 +26,14 @@ namespace EFCoreQuerys
             {
                 case '2':
                     CreateDatabase(_context);
+                    break;
+
+                case '3':
+                    EmployeesGlobalFilterList(_context);
+                    break;
+
+                case '4':
+                    EmployeesIgnoreGlobalFilterList(_context);
                     break;
 
                 case '8':
@@ -41,6 +53,59 @@ namespace EFCoreQuerys
             bool healthCheck = _context.Database.CanConnect();
             
             return healthCheck;
+        }
+
+        static void EmployeesGlobalFilterList(ApplicationContext _context)
+        {
+            
+            if(HealthCheck(_context)){
+            
+                var employees = _context.Employees
+                                .ToList();
+
+                EmployeesList(employees);
+
+            } else {
+
+                ConsoleTextBox("Database not found.");
+
+            }
+
+        }
+
+        static void EmployeesIgnoreGlobalFilterList(ApplicationContext _context)
+        {
+            
+            if(HealthCheck(_context)){
+            
+                var employees = _context.Employees
+                                .IgnoreQueryFilters()
+                                .ToList();
+
+                EmployeesList(employees);
+
+            } else {
+
+                ConsoleTextBox("Database not found.");
+
+            }
+
+        }
+
+        static void EmployeesList(List<Employee> employees)
+        {
+
+            ConsoleTextBox("Employees");
+            Console.WriteLine("IsDeleted | Name");
+            Console.WriteLine("- - - - - - - - - - - - -");
+
+            foreach(var employee in employees)
+            {
+                Console.WriteLine($"{employee.IsDeleted} \t    {employee.Name}");
+            }
+
+            ConsoleTextBox($"{employees.Count()} record(s) found.");
+
         }
 
         static void CreateDatabase(ApplicationContext _context) 
