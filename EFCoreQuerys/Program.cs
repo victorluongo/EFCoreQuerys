@@ -19,6 +19,7 @@ namespace EFCoreQuerys
             Console.WriteLine("[4] Employees Ignore Global Filter List");
             Console.WriteLine("[5] Employees Interpolated List");
             Console.WriteLine("[6] Departments Projected List");
+            Console.WriteLine("[7] Departments Slipt Query");
             Console.WriteLine("[8] Delete Database");
             Console.WriteLine("[9] Exit");
             Console.WriteLine("- - - - - - - - - - - - -\n");
@@ -44,6 +45,10 @@ namespace EFCoreQuerys
 
                 case '6':
                     DepartmentsProjectedList(_context);
+                    break;
+                
+                case '7':
+                    DepartmentsSliptQuery(_context);
                     break;
 
                 case '8':
@@ -171,6 +176,49 @@ namespace EFCoreQuerys
             }
 
         }
+
+        static void DepartmentsSliptQuery(ApplicationContext _context)
+        {
+
+            if(HealthCheck(_context)){
+
+                var departments = _context.Departments
+                                .Include(p => p.Employees.Where(e => e.IsDeleted==false))
+                                .Where(p => p.IsDeleted==false)
+                                .AsSplitQuery()
+                                .IgnoreQueryFilters()
+                                .ToList();
+                
+                foreach(var department in departments)
+                {
+                    ConsoleTextBox(department.Name);
+                    
+                    List<Employee> employees = new List<Employee>();
+                    
+                    foreach(var employee in department.Employees)
+                    {
+                        employees.Add(
+                            new Employee
+                            {
+                                Name = employee.Name,
+                                IsDeleted = employee.IsDeleted
+                            }
+                        );
+                    }
+
+                    EmployeesList(employees, false, false);
+
+                    employees.Clear();
+
+                }
+
+            } else {
+
+                ConsoleTextBox("Database not found.");
+
+            }
+
+        }        
 
         static void EmployeesList(List<Employee> employees, 
                                     bool ShowTitle = true, 
