@@ -18,6 +18,7 @@ namespace EFCoreQuerys
             Console.WriteLine("[3] Employees Global Filter List");
             Console.WriteLine("[4] Employees Ignore Global Filter List");
             Console.WriteLine("[5] Employees Interpolated List");
+            Console.WriteLine("[6] Departments Projected List");
             Console.WriteLine("[8] Delete Database");
             Console.WriteLine("[9] Exit");
             Console.WriteLine("- - - - - - - - - - - - -\n");
@@ -39,6 +40,10 @@ namespace EFCoreQuerys
 
                 case '5':
                     EmployeesInterpolatedList(_context);
+                    break;
+
+                case '6':
+                    DepartmentsProjectedList(_context);
                     break;
 
                 case '8':
@@ -115,23 +120,82 @@ namespace EFCoreQuerys
 
                 ConsoleTextBox("Database not found.");
 
-            }            
+            }
 
         }
 
-        static void EmployeesList(List<Employee> employees)
+        static void DepartmentsProjectedList(ApplicationContext _context)
         {
 
-            ConsoleTextBox("Employees");
-            Console.WriteLine("IsDeleted | Name");
-            Console.WriteLine("- - - - - - - - - - - - -");
+            if(HealthCheck(_context)){
+
+                var departments = _context.Departments
+                                .Where(p => p.IsDeleted==false)
+                                .Select(p => new {
+                                    p.Name,
+                                    Employees = p.Employees.Select(e => new {
+                                        e.Name,
+                                        e.IsDeleted
+                                    }).Where(e => e.IsDeleted==false)
+                                })
+                                .IgnoreQueryFilters()
+                                .ToList();
+                
+                foreach(var department in departments)
+                {
+                    ConsoleTextBox(department.Name);
+                    
+                    List<Employee> employees = new List<Employee>();
+                    
+                    foreach(var employee in department.Employees)
+                    {
+                        employees.Add(
+                            new Employee
+                            {
+                                Name = employee.Name,
+                                IsDeleted = employee.IsDeleted
+                            }
+                        );
+                    }
+
+                    EmployeesList(employees, false, false);
+
+                    employees.Clear();
+
+                }
+
+            } else {
+
+                ConsoleTextBox("Database not found.");
+
+            }
+
+        }
+
+        static void EmployeesList(List<Employee> employees, 
+                                    bool ShowTitle = true, 
+                                    bool ShowFieldsTitles = true, 
+                                    bool ShowRecordCount = true)
+        {
+
+            if(ShowTitle) {
+                ConsoleTextBox("Employees");
+            }
+
+            if(ShowFieldsTitles) {
+                Console.WriteLine("IsDeleted | Name");
+                Console.WriteLine("- - - - - - - - - - - - -");
+            }
 
             foreach(var employee in employees)
             {
                 Console.WriteLine($"{employee.IsDeleted} \t    {employee.Name}");
             }
 
-            ConsoleTextBox($"{employees.Count()} record(s) found.");
+            if(ShowRecordCount) {
+                Console.WriteLine("- - - - - - - - - - - - -");
+                Console.WriteLine($"{employees.Count()} record(s) found.");
+            }
 
         }
 
