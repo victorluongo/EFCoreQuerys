@@ -17,6 +17,7 @@ namespace EFCoreQuerys
             Console.WriteLine("[2] Create Database");
             Console.WriteLine("[3] Employees Global Filter List");
             Console.WriteLine("[4] Employees Ignore Global Filter List");
+            Console.WriteLine("[5] Employees Interpolated List");
             Console.WriteLine("[8] Delete Database");
             Console.WriteLine("[9] Exit");
             Console.WriteLine("- - - - - - - - - - - - -\n");
@@ -34,6 +35,10 @@ namespace EFCoreQuerys
 
                 case '4':
                     EmployeesIgnoreGlobalFilterList(_context);
+                    break;
+
+                case '5':
+                    EmployeesInterpolatedList(_context);
                     break;
 
                 case '8':
@@ -89,6 +94,28 @@ namespace EFCoreQuerys
                 ConsoleTextBox("Database not found.");
 
             }
+
+        }
+
+        static void EmployeesInterpolatedList(ApplicationContext _context)
+        {
+
+            if(HealthCheck(_context)){
+            
+                bool IsDeleted = true;
+
+                var employees = _context.Employees
+                                .FromSqlInterpolated($"SELECT * FROM Employees WHERE IsDeleted={IsDeleted}")
+                                .IgnoreQueryFilters()
+                                .ToList();
+
+                EmployeesList(employees);
+
+            } else {
+
+                ConsoleTextBox("Database not found.");
+
+            }            
 
         }
 
